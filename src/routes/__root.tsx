@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "AI-Productivity-Assistant" },
+      { name: "description", content: "AI Workplace Productivity Assistant streamlines work with AI-powered tools for communication, summarization, planning, and research." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "AI-Productivity-Assistant" },
+      { property: "og:description", content: "AI Workplace Productivity Assistant streamlines work with AI-powered tools for communication, summarization, planning, and research." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "AI-Productivity-Assistant" },
+      { name: "twitter:description", content: "AI Workplace Productivity Assistant streamlines work with AI-powered tools for communication, summarization, planning, and research." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ZdEK5V5HYecjHHbQKl2z2FNdyjZ2/social-images/social-1782141032595-home.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ZdEK5V5HYecjHHbQKl2z2FNdyjZ2/social-images/social-1782141032595-home.webp" },
     ],
     links: [
       {
