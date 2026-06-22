@@ -36,10 +36,6 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-function emit() {
-  cache = readFresh();
-  listeners.forEach((l) => l());
-}
 
 function write(next: ChatThread[]) {
   saveJSON(KEY, next);
