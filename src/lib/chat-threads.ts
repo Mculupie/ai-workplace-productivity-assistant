@@ -1,0 +1,109 @@
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import type { UIMessage } from "ai";
+import { loadJSON, saveJSON } from "@/lib/storage";
+
+export type ChatThread = {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: UIMessage[];
+};
+
+const KEY = "apa.chat.threads";
+
+const listeners = new Set<() => void>();
+const EMPTY: ChatThread[] = [];
+let cache: ChatThread[] = EMPTY;
+let hydrated = false;
+
+function readFresh(): ChatThread[] {
+  return loadJSON<ChatThread[]>(KEY, []);
+}
+function getSnapshot(): ChatThread[] {
+  if (typeof window === "undefined") return EMPTY;
+  if (!hydrated) {
+    cache = readFresh();
+    hydrated = true;
+  }
+  return cache;
+}
+function getServerSnapshot(): ChatThread[] {
+  return EMPTY;
+}
+function emit() {
+  cache = readFresh();
+  hydrated = true;
+  listeners.forEach((l) => l());
+}
+
+
+function write(next: ChatThread[]) {
+  saveJSON(KEY, next);
+  emit();
+}
+
+export function useThreads() {
+  const subscribe = useCallback((cb: () => void) => {
+    listeners.add(cb);
+    return () => {
+      listeners.delete(cb);
+    };
+  }, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+export function useThread(id: string | undefined) {
+  const threads = useThreads();
+  return id ? threads.find((t) => t.id === id) : undefined;
+}
+
+export function createThread(): ChatThread {
+  const t: ChatThread = {
+    id: crypto.randomUUID(),
+    title: "New chat",
+    updatedAt: Date.now(),
+    messages: [],
+  };
+  write([t, ...readFresh()]);
+  return t;
+}
+
+export function updateThread(id: string, patch: Partial<ChatThread>) {
+  const list = readFresh();
+  const idx = list.findIndex((t) => t.id === id);
+  if (idx === -1) return;
+  list[idx] = { ...list[idx], ...patch, updatedAt: Date.now() };
+  write(list);
+}
+
+export function deleteThread(id: string) {
+  write(readFresh().filter((t) => t.id !== id));
+}
+
+
+export function deriveTitle(messages: UIMessage[]): string {
+  const first = messages.find((m) => m.role === "user");
+  if (!first) return "New chat";
+  const text = first.parts
+    .map((p) => (p.type === "text" ? p.text : ""))
+    .join(" ")
+    .trim();
+  return text.slice(0, 40) || "New chat";
+}
+
+// Hook to persist messages whenever they change (debounced via effect deps).
+export function usePersistMessages(
+  id: string | undefined,
+  messages: UIMessage[],
+  status: string,
+) {
+  useEffect(() => {
+    if (!id) return;
+    if (status === "submitted" || status === "streaming") return;
+    if (messages.length === 0) return;
+    const list = readFresh();
+    const existing = list.find((t) => t.id === id);
+    const title = existing && existing.title !== "New chat" ? existing.title : deriveTitle(messages);
+    updateThread(id, { messages, title });
+  }, [id, messages, status]);
+}
