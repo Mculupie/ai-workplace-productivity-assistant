@@ -87,10 +87,11 @@ function ChatWindow({ threadId }: { threadId: string }) {
       <div className="border-t p-3">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea
-            ref={textareaRef}
             placeholder="Message WorkPilot..."
             disabled={isLoading}
+            autoFocus
           />
+
           <div className="flex items-center justify-end p-2">
             <PromptInputSubmit status={status} disabled={isLoading} />
           </div>
