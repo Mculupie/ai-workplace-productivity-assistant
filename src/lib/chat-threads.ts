@@ -90,7 +90,7 @@ export function usePersistMessages(
     if (!id) return;
     if (status === "submitted" || status === "streaming") return;
     if (messages.length === 0) return;
-    const list = read();
+    const list = readFresh();
     const existing = list.find((t) => t.id === id);
     const title = existing && existing.title !== "New chat" ? existing.title : deriveTitle(messages);
     updateThread(id, { messages, title });
