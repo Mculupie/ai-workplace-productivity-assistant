@@ -49,7 +49,7 @@ export function useThreads() {
       listeners.delete(cb);
     };
   }, []);
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function useThread(id: string | undefined) {
