@@ -41,12 +41,8 @@ function ChatWindow({ threadId }: { threadId: string }) {
 
   usePersistMessages(threadId, messages, status);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, [threadId, status]);
-
   const isLoading = status === "submitted" || status === "streaming";
+
 
   function handleSubmit(message: { text?: string; files?: unknown }) {
     const text = (message.text ?? "").trim();
