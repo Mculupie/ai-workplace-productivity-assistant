@@ -12,13 +12,20 @@ export type ChatThread = {
 const KEY = "apa.chat.threads";
 
 const listeners = new Set<() => void>();
+let cache: ChatThread[] | null = null;
+
+function readFresh(): ChatThread[] {
+  return loadJSON<ChatThread[]>(KEY, []);
+}
+function getSnapshot(): ChatThread[] {
+  if (cache === null) cache = readFresh();
+  return cache;
+}
 function emit() {
+  cache = readFresh();
   listeners.forEach((l) => l());
 }
 
-function read(): ChatThread[] {
-  return loadJSON<ChatThread[]>(KEY, []);
-}
 function write(next: ChatThread[]) {
   saveJSON(KEY, next);
   emit();
@@ -27,14 +34,11 @@ function write(next: ChatThread[]) {
 export function useThreads() {
   const subscribe = useCallback((cb: () => void) => {
     listeners.add(cb);
-    return () => listeners.delete(cb);
+    return () => {
+      listeners.delete(cb);
+    };
   }, []);
-  const threads = useSyncExternalStore(
-    subscribe,
-    () => read(),
-    () => [] as ChatThread[],
-  );
-  return threads;
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export function useThread(id: string | undefined) {
@@ -49,12 +53,12 @@ export function createThread(): ChatThread {
     updatedAt: Date.now(),
     messages: [],
   };
-  write([t, ...read()]);
+  write([t, ...readFresh()]);
   return t;
 }
 
 export function updateThread(id: string, patch: Partial<ChatThread>) {
-  const list = read();
+  const list = readFresh();
   const idx = list.findIndex((t) => t.id === id);
   if (idx === -1) return;
   list[idx] = { ...list[idx], ...patch, updatedAt: Date.now() };
@@ -62,8 +66,9 @@ export function updateThread(id: string, patch: Partial<ChatThread>) {
 }
 
 export function deleteThread(id: string) {
-  write(read().filter((t) => t.id !== id));
+  write(readFresh().filter((t) => t.id !== id));
 }
+
 
 export function deriveTitle(messages: UIMessage[]): string {
   const first = messages.find((m) => m.role === "user");
