@@ -12,15 +12,30 @@ export type ChatThread = {
 const KEY = "apa.chat.threads";
 
 const listeners = new Set<() => void>();
-let cache: ChatThread[] | null = null;
+const EMPTY: ChatThread[] = [];
+let cache: ChatThread[] = EMPTY;
+let hydrated = false;
 
 function readFresh(): ChatThread[] {
   return loadJSON<ChatThread[]>(KEY, []);
 }
 function getSnapshot(): ChatThread[] {
-  if (cache === null) cache = readFresh();
+  if (typeof window === "undefined") return EMPTY;
+  if (!hydrated) {
+    cache = readFresh();
+    hydrated = true;
+  }
   return cache;
 }
+function getServerSnapshot(): ChatThread[] {
+  return EMPTY;
+}
+function emit() {
+  cache = readFresh();
+  hydrated = true;
+  listeners.forEach((l) => l());
+}
+
 function emit() {
   cache = readFresh();
   listeners.forEach((l) => l());
