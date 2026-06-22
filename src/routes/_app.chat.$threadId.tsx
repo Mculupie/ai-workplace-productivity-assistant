@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Conversation,
